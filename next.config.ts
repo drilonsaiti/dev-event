@@ -1,0 +1,7 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  turbo
+};
+
+export default nextConfig;
