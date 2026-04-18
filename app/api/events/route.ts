@@ -18,9 +18,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({message: 'Invalid JSON data format'}, {status: 400});
         }
 
-        const file = formData.get('image') as File;
+        const file = formData.get("image");
 
-        if (!file) {
+        if (!(file instanceof File)) {
             return NextResponse.json({
                     message: 'Image file is required',
 
@@ -30,8 +30,18 @@ export async function POST(req: NextRequest) {
                 })
         }
 
-        const tags = JSON.parse(formData.get('tags') as string);
-        const agenda = JSON.parse(formData.get('agenda') as string);
+        let tags: string[];
+        let agenda: string[];
+
+        try {
+            tags = JSON.parse(formData.get("tags") as string);
+            agenda = JSON.parse(formData.get("agenda") as string);
+        } catch {
+            return NextResponse.json(
+                { message: "tags and agenda must be valid JSON arrays" },
+                { status: 400 }
+            );
+        }
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -70,6 +80,15 @@ export async function POST(req: NextRequest) {
                 console.error("Error deleting image from Cloudinary:", e);
             }
         }
+
+        if (e instanceof Error && e.name === "ValidationError") {
+            return NextResponse.json({ message: e.message }, { status: 400 });
+        }
+
+        if (typeof e === "object" && e && "code" in e && e.code === 11000) {
+            return NextResponse.json({ message: "Event slug already exists" }, { status: 409 });
+        }
+
         return NextResponse.json({
                 message: "Event Creation Failed",
                 error: e instanceof Error ? e.message : "Unknown error",
