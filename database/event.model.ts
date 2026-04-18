@@ -127,18 +127,31 @@ EventSchema.pre<IEvent>('save', async function () {
 
 // Helper function to generate URL-friendly slug
 function generateSlug(title: string): string {
-  return title
+  const slug = title
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+
+    if (!slug){
+        throw new Error('Title must contain at least one alphanumeric character');
+    }
+    return slug;
 }
 
 // Helper function to normalize date to ISO format
 function normalizeDate(dateString: string): string {
-  const date = new Date(dateString);
+  const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (isoDateRegex.test(dateString)) {
+      const date = new Date(dateString + 'T00:00:00Z');
+      if (isNaN(date.getTime())) {
+          throw new Error('Invalid date format');
+      }
+      return dateString;
+  }
+    const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     throw new Error('Invalid date format');
   }

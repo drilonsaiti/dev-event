@@ -2,9 +2,7 @@ import mongoose, { type ConnectOptions, type Mongoose } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable.");
-}
+
 
 type MongooseCache = {
   conn: Mongoose | null;
@@ -31,6 +29,10 @@ const options: ConnectOptions = {
 };
 
 export async function connectDB(): Promise<Mongoose> {
+  if (!MONGODB_URI) {
+    throw new Error("Please define the MONGODB_URI environment variable.");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
